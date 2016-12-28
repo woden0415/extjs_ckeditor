@@ -1,0 +1,39 @@
+{
+  "success": true,
+  "source": [
+    {
+      "id": 1,
+      "category": "a",
+      "text": "可编辑器区域1"
+    },
+    {
+      "id": 2,
+      "category": "a",
+      "text": "可编辑器区域2"
+    },
+    {
+      "id": 3,
+      "category": "b",
+      "text": "可编辑器区域3"
+    }
+  ]
+}
+
+
+// {
+//   "users": [
+//     {
+//       "user": "sauldls",
+//       "pwd": "clownfish1"
+//     },
+//     {
+//       "user": "blatzgb",
+//       "pwd": "clownfish2"
+//     },
+//     {
+//       "user": "salzeljs",
+//       "pwd": "clownfish3"
+//     }
+//   ]
+// }
+
