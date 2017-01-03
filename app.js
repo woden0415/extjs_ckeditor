@@ -14,24 +14,16 @@ Ext.onReady(function() {
     resizeTabs: true,
     height: 400,
     layout: 'fit',
-    items: [
-      {
-        items: [
-          {
-            xtype: 'ckeditor',
-            fieldLabel: 'Editor',
-            name: 'htmlcode',
-            CKConfig: {
-              /* Enter your CKEditor config paramaters here or define a custom CKEditor config file. */
-              //customConfig : '/ckeditor/config.js', // This allows you to define the path to a custom CKEditor config file.
-              toolbar: 'Basic',
-              height: 190,
-              // width: 900
-            }
-          }
-        ]
+    cls: 'ckeditorForm',
+    items: {
+      xtype: 'ckeditor',
+      fieldLabel: 'Editor',
+      name: 'htmlcode',
+      CKConfig: {
+        toolbar: 'Basic',
+        height: 190,
       }
-    ]
+    }
   });
 
   var editorFields = [
@@ -42,14 +34,14 @@ Ext.onReady(function() {
 
   var editorTpl = new Ext.XTemplate(
     '<tpl for=".">',
-      '<div data-id="{id}" data-category="{category}" style="margin-bottom: 5px;">',
+      '<div class="sourceSection" data-id="{id}" data-category="{category}" style="margin-bottom: 5px;">',
       '{html}',
       '</div>',
     '</tpl>'
   );
   editorTpl.compile();
 
-  var store = new Ext.data.JsonStore({
+  var editorStore = new Ext.data.JsonStore({
     url: 'resources.json',
     root: 'source',
     autoLoad: true,
@@ -57,14 +49,19 @@ Ext.onReady(function() {
   });
 
   var sourceView = new Ext.DataView({
-    store: store,
+    store: editorStore,
     tpl: editorTpl,
     autoHeight: true,
-    emptyText: 'No text to display'
+    trackOver: true,
+    emptyText: 'No text to display',
+    listeners: {
+      render: initializePatientDragZone
+    },
+    itemSelector: 'div.sourceSection',
   });
 
-  var window = new Ext.Window({
-    title: 'Resize Me',
+  var editorWin = new Ext.Window({
+    title: '文本编辑器',
     width: 800,
     height: 450,
     plain: true,
@@ -95,18 +92,69 @@ Ext.onReady(function() {
       {
         text: '保存',
         handler: function() {
-          Ext.example.msg('数据已被保存');
+          Ext.MessageBox.alert('数据已被保存');
         }
       },
       {
         text: '取消',
         handler: function(button) {
-          var win = button.up('window');
-          win.close();
+          editorWin.close();
         }
       }
       ]
   });
 
-  window.show();
+  editorWin.show();
+
+  // 资源区域可拖拽
+  function initializePatientDragZone(v){
+    v.dragZone = new Ext.dd.DragZone(v.getEl(), {
+      getDragData: function(e){
+        var sourceEl = e.getTarget(v.itemSelector, 10);
+        if (sourceEl) {
+          d = sourceEl.cloneNode(true);
+          d.id = Ext.id();
+          return v.dragData = {
+            sourceEl: sourceEl,
+            repairXY: Ext.fly(sourceEl).getXY(),
+            ddel: d,
+            patientData: v.getRecord(sourceEl).data
+          }
+        }
+      },
+      getRepairXY: function() {
+        return this.dragData.repairXY;
+      }  
+    })
+  }
+
+  // 编辑器区域可放置
+  // @TODO
+  function initializeHospitalDropZone(g){
+    g.dropZone = new Ext.dd.DropZone(g.getView().scroller, {
+      getTargetFromEvent: function(e) {
+        return e.getTarget('.hospital-target');
+      },
+      onNodeEnter : function(target, dd, e, data){ 
+          Ext.fly(target).addClass('hospital-target-hover');
+      },
+      onNodeOut : function(target, dd, e, data){ 
+          Ext.fly(target).removeClass('hospital-target-hover');
+      },
+      onNodeOver : function(target, dd, e, data){ 
+          return Ext.dd.DropZone.prototype.dropAllowed;
+      },
+      onNodeDrop : function(target, dd, e, data){
+        var rowIndex = g.getView().findRowIndex(target);
+        var h = g.getStore().getAt(rowIndex);
+        var targetEl = Ext.get(target);
+        targetEl.update(data.patientData.name+', '+targetEl.dom.innerHTML);
+        Ext.Msg.alert('Drop gesture', 'Dropped patient ' + data.patientData.name +
+          ' on hospital ' + h.data.name);
+        return true;
+      }
+    });
+
+  }
+
 });
