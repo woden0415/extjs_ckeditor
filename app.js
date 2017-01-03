@@ -34,41 +34,33 @@ Ext.onReady(function() {
     ]
   });
 
-  var tpl = new Ext.XTemplate(
+  var editorFields = [
+    {name: 'id',type: 'int'},
+    {name: 'category',type: 'string'},
+    {name: 'html', type:'string'}
+  ];
+
+  var editorTpl = new Ext.XTemplate(
     '<tpl for=".">',
-      '<div>',
-      '{id}',
-      '{category}',
-      '<p>{text}</p>',
+      '<div data-id="{id}" data-category="{category}" style="margin-bottom: 5px;">',
+      '{html}',
       '</div>',
     '</tpl>'
   );
-  tpl.compile();
+  editorTpl.compile();
 
   var store = new Ext.data.JsonStore({
     url: 'resources.json',
     root: 'source',
     autoLoad: true,
-    fields: [
-      {name: 'id',type: 'int'},
-      {name: 'category',type: 'string'},
-      {name: 'text', type:'string'}
-    ]
-  });
-  store.on("load", function(thisStore, records, options){
-    var cnt = thisStore.getCount();
-    console.log(cnt);
+    fields: editorFields
   });
 
   var sourceView = new Ext.DataView({
     store: store,
-    tpl: tpl,
+    tpl: editorTpl,
     autoHeight: true,
     emptyText: 'No text to display'
-  });
-
-  sourceView.on("load", function(){
-    console.log("aaaaaaaaaa");
   });
 
   var window = new Ext.Window({
